@@ -1,0 +1,313 @@
+---
+title: "ST406"
+author: "W.M.C.C.M.Wijesingha S/18/836"
+date: "2024-10-13"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(tinytex)
+library(janitor)
+library(latex2exp)
+library(skimr)
+#install.packages("BAS")
+library(BAS)
+```
+```{r}
+weather_data<-read_csv("../data/weatherHistory.csv")
+```
+```{r}
+head(weather_data)
+```
+
+```{r}
+colnames(weather_data)
+str(weather_data)
+```
+```{r}
+numarical_data <- weather_data[, -c(1,2,3,10,12)]
+colnames(numarical_data) 
+```
+```{r}
+head(numarical_data)
+```
+
+```{r}
+summary(numarical_data)
+```
+```{r}
+library(corrplot)
+
+```
+
+```{r}
+m <- cor(numarical_data) 
+m_round <- round(m, digits = 4) 
+corrplot(corr = m_round, method = "number")
+```
+
+
+```{r}
+fit <- lm(formula = ApparentTemperature ~ Temperature, data = numarical_data) 
+summary(fit)
+
+```
+```{r}
+par(mfrow = c(2,2)) 
+plot(fit)
+```
+
+```{r}
+ggplot(data = numarical_data, aes(x = Temperature, y =ApparentTemperature )) + geom_point(color="green", alpha=0.35, size=2) + geom_smooth(method=lm, color="black")
+```
+
+```{r}
+fit <- lm(formula = ApparentTemperature ~ Humidity, data = numarical_data) 
+summary(fit)
+```
+
+
+```{r}
+par(mfrow = c(2,2)) 
+plot(fit)
+```
+
+```{r}
+ggplot(data = numarical_data, aes(x = Humidity, y = ApparentTemperature)) + geom_point(color="green", alpha=0.5, size=2) + geom_smooth(method=lm, color="black")
+```
+
+```{r}
+fit <- lm(formula = ApparentTemperature ~ WindSpeed, data = numarical_data) 
+summary(fit)
+```
+```{r}
+par(mfrow = c(2,2)) 
+plot(fit)
+```
+
+
+```{r}
+ggplot(data = numarical_data, aes(x = WindSpeed, y = ApparentTemperature)) + geom_point(color="green", alpha=0.5, size=2) + geom_smooth(method=lm, color="black")
+```
+
+```{r}
+fit <- lm(formula = ApparentTemperature ~ WindBearing, data = numarical_data) 
+summary(fit)
+```
+```{r}
+par(mfrow = c(2,2)) 
+plot(fit)
+```
+```{r}
+ggplot(data = numarical_data, aes(x = WindBearing, y = ApparentTemperature)) + geom_point(color="green", alpha=0.5, size=2) + geom_smooth(method=lm, color="black")
+```
+```{r}
+fit <- lm(formula = ApparentTemperature ~ Visibility, data = numarical_data) 
+summary(fit)
+```
+```{r}
+par(mfrow = c(2,2)) 
+plot(fit)
+```
+```{r}
+ggplot(data = numarical_data, aes(x = Visibility, y = ApparentTemperature)) + geom_point(color="green", alpha=0.5, size=2) + geom_smooth(method=lm, color="black")
+```
+```{r}
+fit <- lm(formula = ApparentTemperature ~ Pressure, data = numarical_data) 
+summary(fit)
+```
+```{r}
+par(mfrow = c(2,2)) 
+plot(fit)
+```
+```{r}
+ggplot(data = numarical_data, aes(x = Pressure, y = ApparentTemperature)) + geom_point(color="green", alpha=0.5, size=2) + geom_smooth(method=lm, color="black")
+```
+
+```{r}
+fit <- lm(formula = ApparentTemperature ~ Temperature, data = numarical_data) 
+summary(fit)
+```
+```{r}
+par(mfrow = c(2,2)) 
+plot(fit)
+```
+
+```{r}
+data_frame <- data.frame(fitted_values = fitted.values(fit), residuals = residuals(fit))
+```
+```{r}
+ggplot(data = data_frame, aes(x = fitted_values, y = residuals)) + geom_point(pch = 1, size = 2) + geom_abline(intercept = 0, slope = 0) +
+xlab(expression(paste("fitted value ", widehat(ApparentTemperature)))) + ylab("residuals")
+```
+```{r}
+fit <- lm(formula = ApparentTemperature ~ Temperature, data = numarical_data)
+```
+```{r}
+#Obtain residuals and n 
+resid = residuals(fit) 
+n = length(resid)
+
+```
+
+```{r}
+#Calculate MSE 
+MSE = 1/ (n-2) * sum((resid ^ 2))
+MSE
+```
+```{r}
+#Combine residuals and fitted values into a data frame 
+result = data.frame(fitted_values = fitted.values(fit),residuals = residuals(fit))
+```
+
+```{r}
+#Find the observation with the largest fitted value
+which.max(as.vector(fitted.values(fit)))
+```
+```{r}
+#Shows this observation has the largest Temperature
+which.max(numarical_data$Temperature)
+```
+```{r}
+#normal probability plot of the residuals 
+plot(fit, which = 2)
+```
+```{r}
+##Credible Intervals for Slope Beta and y-Intercept alpha 
+output = summary(fit)$coef[, 1:2]
+output
+```
+```{r}
+out <- cbind(output, confint(fit)) 
+colnames(out) <- c("Posterior Mean", "Posterior Std", "2.5", "97.5") 
+round(out, 3)
+```
+
+```{r}
+fit <- lm(formula = ApparentTemperature ~ ., data = numarical_data) 
+summary(fit)
+```
+```{r}
+par(mfrow = c(2,2)) 
+plot(fit)
+```
+```{r}
+bas.weather = bas.lm(ApparentTemperature ~ ., data = numarical_data, prior = "BIC", modelprior = Bernoulli(1), include.always = ~ ., n.models = 1) 
+weather.coef <- coef(bas.weather) 
+weather.coef
+```
+```{r}
+par(mfrow = c(2, 4)) 
+plot(weather.coef, ask = F)
+```
+```{r}
+#Summary table
+out = confint(weather.coef)[, 1:2] 
+# Extract the upper and lower bounds of the credible intervals 
+names = c("posterior mean", "posterior std", colnames(out)) 
+out = cbind(weather.coef$postmean, weather.coef$postsd, out) 
+colnames(out) = names 
+round(out, 2)
+```
+
+```{r}
+# Total number of observation 
+n <- nrow(numarical_data)
+```
+
+```{r}
+# Full Model 
+wea.lm1 <- lm(ApparentTemperature ~ ., data = numarical_data) 
+wea.step <- step(wea.lm1, k = log(n))
+```
+
+
+```{r}
+#Full model-Visibility 
+wea.lmt <- lm(ApparentTemperature ~ Temperature+Humidity+WindSpeed+WindBearing+Pressure,data = numarical_data) 
+wea.step <- step(wea.lmt, k = log(n))
+```
+
+```{r}
+#Full model-WindBearing 
+wea.lmt <- lm(ApparentTemperature ~ Temperature+Humidity+WindSpeed+Pressure+Visibility,data = numarical_data) 
+wea.step <- step(wea.lmt, k = log(n))
+```
+
+
+```{r}
+#Full model-WindSpeed 
+wea.lmt <- lm(ApparentTemperature ~ Temperature+Humidity+Pressure+WindBearing+Visibility,data = numarical_data)
+wea.step <- step(wea.lmt, k = log(n))
+```
+
+```{r}
+#Full model-Humidity 
+wea.lmt <- lm(ApparentTemperature ~ Temperature+Pressure+WindSpeed+WindBearing+Visibility,data = numarical_data) 
+wea.step <- step(wea.lmt, k = log(n))
+```
+```{r}
+#Full model-Temperature 
+wea.lmt <- lm(ApparentTemperature ~ Pressure+Humidity+WindSpeed+WindBearing+Visibility,data = numarical_data) 
+wea.step <- step(wea.lmt, k = log(n))
+```
+
+```{r}
+# Model 
+bas_model <- bas.lm(ApparentTemperature ~ ., data = numarical_data, prior = "BIC", modelprior = uniform()) 
+#bas_model 
+bas_coef <- coef(bas_model) 
+bas_coef
+```
+```{r}
+# Best model 
+best <- which.max(bas_model$logmarg) 
+bestmodel <- bas_model$which[[best]] 
+bestmodel
+```
+```{r}
+bestgamma <- rep(0, bas_model$n.vars)
+bestgamma[bestmodel + 1] <- 1
+bestgamma
+```
+```{r}
+bas_bestmodel <- bas.lm(ApparentTemperature ~ Temperature+Humidity+WindSpeed+WindBearing+Pressure, data = numarical_data, prior = "BIC", n.models = 1, bestmodel = bestgamma, modelprior = uniform())
+```
+```{r}
+## Coefficients 
+bas_coef <- coef(bas_bestmodel) 
+## credible intervals 
+out <- confint(bas_coef)[, 1:2]
+```
+
+```{r}
+## Summary table 
+bas_summary <- cbind(bas_coef$postmean, bas_coef$postsd, out)
+names <- c("Posterior Mean", "Posterior SD", colnames(out)) 
+colnames(bas_summary) <- names 
+bas_summary
+```
+```{r}
+## Get posterior probability 
+bas_model <- bas.lm(ApparentTemperature ~ Temperature+Humidity+WindSpeed+WindBearing+Pressure, data = numarical_data, prior = "BIC", modelprior = uniform()) 
+round(summary(bas_model), 3)
+```
+```{r}
+## Marginal posterior inclusion probability 
+print(bas_model)
+```
+
+
+
+
+
+
+
